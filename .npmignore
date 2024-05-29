@@ -1,5 +1,5 @@
-lib
-node_modules
-tsconfig.json
-test
-index.html
+public/
+lib/
+.vscode/
+.github/
+node_modules/
