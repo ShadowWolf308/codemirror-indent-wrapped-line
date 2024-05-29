@@ -1,6 +1,6 @@
 {
 	"name": "codemirror-indent-wrapped-line",
-	"version": "0.1.3",
+	"version": "1.0.0",
 	"description": "Extension for indenting wrapped lines in CodeMirror",
 	"license": "MIT",
 	"author": {
