@@ -74,10 +74,6 @@ class IndentWrappedLinesPlugin implements PluginValue {
 		}
 	}
 
-	public destroy(): void {
-		
-	}
-
 	private generate(state: EditorState) {
 		const builder = new RangeSetBuilder<Decoration>();
 
