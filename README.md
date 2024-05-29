@@ -1,5 +1,5 @@
 # codemirror-indent-wrapped-line
-An extension to CodeMirror to indent wrapped newlines
+An extension to CodeMirror to indent wrapped lines
 
 ## Installation
 The step to use codemirror-indent-wrapped-line is to install the package from npm.
