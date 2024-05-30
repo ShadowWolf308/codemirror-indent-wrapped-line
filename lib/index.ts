@@ -1,4 +1,4 @@
-import { EditorState, Line, RangeSetBuilder } from "@codemirror/state";
+import { EditorState, Extension, Line, RangeSetBuilder } from "@codemirror/state";
 import { Decoration, DecorationSet, EditorView, PluginValue, ViewPlugin, ViewUpdate } from "@codemirror/view";
 import { getIndentUnit } from "@codemirror/language";
 import { IndentWrappedLinesOptions } from "./types";
@@ -10,7 +10,7 @@ interface Spacing {
 
 class IndentWrappedLinesPlugin implements PluginValue {
 	public decorations!: DecorationSet;
-	
+
 	private view: EditorView;
 	private indentUnit: number;
 	private isChrome: boolean;
@@ -21,6 +21,8 @@ class IndentWrappedLinesPlugin implements PluginValue {
 		this.view = view;
 		this.indentUnit = getIndentUnit(view.state);
 		this.options = options;
+		// TODO: replace with a more reliable way to detect Chrome
+		// avoid using navigator.userAgent because of UA spoofing
 		this.isChrome = /Chrome/.test(navigator.userAgent);
 
 		this.generate(view.state);
@@ -72,7 +74,7 @@ class IndentWrappedLinesPlugin implements PluginValue {
 		this.decorations = builder.finish();
 	}
 
-	private appendStylesToBuilder(builder: RangeSetBuilder<Decoration>, state: EditorState, initialPadding: string): void {				
+	private appendStylesToBuilder(builder: RangeSetBuilder<Decoration>, state: EditorState, initialPadding: string): void {
 		const lines = this.getVisibleLines(state);
 
 		const initialIndentValue = this.getInitialIndentValue(state.tabSize);
@@ -81,7 +83,7 @@ class IndentWrappedLinesPlugin implements PluginValue {
 			const columnsDetails = this.getNumberOfColumns(line.text, state.tabSize);
 
 			const paddingValue = `calc(${columnsDetails.amountOfSpacing + initialIndentValue}ch + ${initialPadding})`;
-			
+
 			let textIndentValue: string;
 
 			if (this.isChrome) {
@@ -112,7 +114,7 @@ class IndentWrappedLinesPlugin implements PluginValue {
 
 			while (position < range.to) {
 				const line: Line = state.doc.lineAt(position);
-				
+
 				if (line !== lastLine) {
 					lines.add(line);
 					lastLine = line;
@@ -128,7 +130,7 @@ class IndentWrappedLinesPlugin implements PluginValue {
 	public getNumberOfColumns(value: string, tabSize: number): Spacing {
 		let charSpacing = 0;
 		let containsTab = false;
-		
+
 		for (let index = 0; index < value.length; index++) {
 			if (value[index] === " ") {
 				charSpacing++;
@@ -192,19 +194,19 @@ class IndentWrappedLinesPlugin implements PluginValue {
  * @param options Options for the indent wrapped lines extension
  * @returns A CodeMirror extension
  */
-export function indentWrappedLines(options?: Partial<IndentWrappedLinesOptions>): ViewPlugin<IndentWrappedLinesPlugin> {
+export function indentWrappedLines(options?: Partial<IndentWrappedLinesOptions>): Extension {
 	const constructedOptions: IndentWrappedLinesOptions = {
 		initialIndent: 0,
 		initialIndentType: "space",
 		...options,
 	}
-	
+
 	class IndentWrappedLines extends IndentWrappedLinesPlugin {
 		constructor(view: EditorView) {
 			super(view, constructedOptions);
 		}
 	}
-	
+
 	return ViewPlugin.fromClass(IndentWrappedLines, {
 		decorations: (pluginClass) => pluginClass.decorations,
 		provide: (pluginClass) => [
