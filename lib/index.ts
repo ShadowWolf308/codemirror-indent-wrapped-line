@@ -24,7 +24,7 @@ class IndentWrappedLinesPlugin implements PluginValue {
 
 		this.indentUnit = indentUnit;
 
-		if (update.docChanged || update.geometryChanged) {
+		if (update.docChanged || update.geometryChanged || update.viewportChanged) {
 			this.generate(update.state);
 		}
 	}
