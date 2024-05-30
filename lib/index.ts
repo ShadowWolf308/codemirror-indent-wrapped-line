@@ -3,17 +3,11 @@ import { Decoration, DecorationSet, EditorView, PluginValue, ViewPlugin, ViewUpd
 import { getIndentUnit } from "@codemirror/language";
 import { IndentWrappedLinesOptions } from "./types";
 
-interface Spacing {
-	amountOfSpacing: number;
-	containsTab: boolean;
-}
-
 class IndentWrappedLinesPlugin implements PluginValue {
 	public decorations!: DecorationSet;
 
 	private view: EditorView;
 	private indentUnit: number;
-	private isChrome: boolean;
 	private options: IndentWrappedLinesOptions;
 	private initialPadding: string | null = null;
 
@@ -21,9 +15,6 @@ class IndentWrappedLinesPlugin implements PluginValue {
 		this.view = view;
 		this.indentUnit = getIndentUnit(view.state);
 		this.options = options;
-		// TODO: replace with a more reliable way to detect Chrome
-		// avoid using navigator.userAgent because of UA spoofing
-		this.isChrome = /Chrome/.test(navigator.userAgent);
 
 		this.generate(view.state);
 	}
@@ -31,13 +22,9 @@ class IndentWrappedLinesPlugin implements PluginValue {
 	public update(update: ViewUpdate): void {
 		const indentUnit = getIndentUnit(update.state);
 
-		if (
-			this.indentUnit !== indentUnit ||
-			update.docChanged ||
-			update.viewportChanged
-		) {
-			this.indentUnit = indentUnit;
+		this.indentUnit = indentUnit;
 
+		if (update.docChanged || update.geometryChanged) {
 			this.generate(update.state);
 		}
 	}
@@ -48,27 +35,19 @@ class IndentWrappedLinesPlugin implements PluginValue {
 		if (this.initialPadding) {
 			this.appendStylesToBuilder(builder, state, this.initialPadding);
 		} else {
-			const read = (view: EditorView) => {
+			const read = (view: EditorView): void => {
 				const element = view.contentDOM.querySelector(".cm-line");
 
 				if (element) {
-					const initPadding = window.getComputedStyle(element).getPropertyValue("padding-left");
+					this.initialPadding = window.getComputedStyle(element).getPropertyValue("padding-left");
 
-					if (initPadding) {
-						this.initialPadding = initPadding;
-					} else {
-						throw new Error("Could not get initial padding value");
-					}
-
-					this.appendStylesToBuilder(builder, state, this.initialPadding)
+					this.appendStylesToBuilder(builder, state, this.initialPadding);
 				}
 			}
 
 			this.view.requestMeasure({
 				read,
 			});
-
-			this.decorations = builder.finish();
 		}
 
 		this.decorations = builder.finish();
@@ -76,21 +55,15 @@ class IndentWrappedLinesPlugin implements PluginValue {
 
 	private appendStylesToBuilder(builder: RangeSetBuilder<Decoration>, state: EditorState, initialPadding: string): void {
 		const lines = this.getVisibleLines(state);
-
 		const initialIndentValue = this.getInitialIndentValue(state.tabSize);
 
 		for (const line of lines) {
-			const columnsDetails = this.getNumberOfColumns(line.text, state.tabSize);
+			const indentSize = this.getIndentSize(line.text, state.tabSize);
 
-			const paddingValue = `calc(${columnsDetails.amountOfSpacing + initialIndentValue}ch + ${initialPadding})`;
+			const characterSpacing = `${indentSize + initialIndentValue}ch`;
 
-			let textIndentValue: string;
-
-			if (this.isChrome) {
-				textIndentValue = `calc(-${columnsDetails.amountOfSpacing + initialIndentValue}ch - ${Number(columnsDetails.containsTab)}px)`;
-			} else {
-				textIndentValue = `-${columnsDetails.amountOfSpacing + initialIndentValue}px`;
-			}
+			const paddingValue = `calc(${characterSpacing} + ${initialPadding})`;
+			const textIndentValue = `calc(-${characterSpacing} - 1px)`;
 
 			builder.add(
 				line.from,
@@ -106,7 +79,6 @@ class IndentWrappedLinesPlugin implements PluginValue {
 
 	private getVisibleLines(state: EditorState): Set<Line> {
 		const lines: Set<Line> = new Set<Line>();
-
 		let lastLine: Line | undefined = undefined;
 
 		for (const range of this.view.visibleRanges) {
@@ -127,18 +99,17 @@ class IndentWrappedLinesPlugin implements PluginValue {
 		return lines;
 	}
 
-	public getNumberOfColumns(value: string, tabSize: number): Spacing {
-		let charSpacing = 0;
-		let containsTab = false;
+	public getIndentSize(value: string, tabSize: number): number {
+		let amountOfSpaces = 0;
+		let amountOfTabs = 0;
 
 		for (let index = 0; index < value.length; index++) {
 			if (value[index] === " ") {
-				charSpacing++;
+				amountOfSpaces++;
 
 				continue;
 			} else if (value[index] === "\t") {
-				containsTab = true;
-				charSpacing += tabSize - (charSpacing % tabSize);
+				amountOfTabs++;
 
 				continue;
 			} else if (value[index] === "\r") {
@@ -148,10 +119,7 @@ class IndentWrappedLinesPlugin implements PluginValue {
 			}
 		}
 
-		return {
-			amountOfSpacing: charSpacing,
-			containsTab,
-		}
+		return amountOfSpaces + (amountOfTabs * tabSize);
 	}
 
 	private getInitialIndentValue(tabSize: number): number {
@@ -199,7 +167,7 @@ export function indentWrappedLines(options?: Partial<IndentWrappedLinesOptions>)
 		initialIndent: 0,
 		initialIndentType: "space",
 		...options,
-	}
+	};
 
 	class IndentWrappedLines extends IndentWrappedLinesPlugin {
 		constructor(view: EditorView) {

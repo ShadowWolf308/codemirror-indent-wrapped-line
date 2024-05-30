@@ -17,7 +17,7 @@ export interface IndentWrappedLinesOptions {
 	 * @default 0
 	 */
 	initialIndent: number;
-	
+
 	/**
 	 * Determines the type of indent to use for the initial indent
 	 * 
