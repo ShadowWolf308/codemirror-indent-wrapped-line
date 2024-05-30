@@ -31,7 +31,7 @@ The indentUnit is supplied by CodeMirror instance which is by default 2 spaces.
 This example will show how to add the extension to a plain CodeMirror instance. The extension will indent the wrapped line by 2 times the size of a tab as defined in the options passes to the extension.
 
 ```ts
-import { indentWrappedLine } from 'codemirror-indent-wrapped-line';
+import { indentWrappedLines } from 'codemirror-indent-wrapped-line';
 import { EditorView } from '@codemirror/view';
 
 // Define the options object
@@ -44,7 +44,7 @@ const options = {
 new EditorView({
 	extensions: [
 		// Give the extension the options object or define the options object in the extension
-		indentWrappedLine(options),
+		indentWrappedLines(options),
 	],
 })
 ```
