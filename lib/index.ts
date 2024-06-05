@@ -62,15 +62,12 @@ class IndentWrappedLinesPlugin implements PluginValue {
 
 			const characterSpacing = `${indentSize + initialIndentValue}ch`;
 
-			const paddingValue = `calc(${characterSpacing} + ${initialPadding})`;
-			const textIndentValue = `calc(-${characterSpacing} - 1px)`;
-
 			builder.add(
 				line.from,
 				line.from,
 				Decoration.line({
 					attributes: {
-						style: `padding-left: ${paddingValue}; text-indent: ${textIndentValue};`,
+						style: `padding-left: calc(${characterSpacing} + ${initialPadding}); text-indent: calc(-${characterSpacing} - 1px);`,
 					},
 				}),
 			);
@@ -143,21 +140,6 @@ class IndentWrappedLinesPlugin implements PluginValue {
 /**
  * An extension for CodeMirror to indent wrapped lines  
  * This extension also contains the extension to enable line wrapping
- * 
- * @example
- * const extensions = [
- * 	indentWrappedLines(),
- * ];
- * 
- * @example
- * const options = {
- * 	initialIndent: 4,
- * 	initialIndentType: "indentUnit",
- * };
- * 
- * const extensions = [
- * 	indentWrappedLines(options),
- * ];
  * 
  * @param options Options for the indent wrapped lines extension
  * @returns A CodeMirror extension
