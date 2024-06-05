@@ -103,16 +103,16 @@ class IndentWrappedLinesPlugin implements PluginValue {
 		let amountOfSpaces = 0;
 		let amountOfTabs = 0;
 
-		for (let index = 0; index < value.length; index++) {
-			if (value[index] === " ") {
+		for (const char of value) {
+			if (char === " ") {
 				amountOfSpaces++;
 
 				continue;
-			} else if (value[index] === "\t") {
+			} else if (char === "\t") {
 				amountOfTabs++;
 
 				continue;
-			} else if (value[index] === "\r") {
+			} else if (char === "\r") {
 				continue;
 			} else {
 				break;
