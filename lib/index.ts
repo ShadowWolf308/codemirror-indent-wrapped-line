@@ -60,14 +60,14 @@ class IndentWrappedLinesPlugin implements PluginValue {
 		for (const line of lines) {
 			const indentSize = this.getIndentSize(line.text, state.tabSize);
 
-			const characterSpacing = `${indentSize + initialIndentValue}ch`;
+			const indentSpacing = `${indentSize + initialIndentValue}ch`;
 
 			builder.add(
 				line.from,
 				line.from,
 				Decoration.line({
 					attributes: {
-						style: `padding-left: calc(${characterSpacing} + ${initialPadding}); text-indent: calc(-${characterSpacing} - 1px);`,
+						style: `padding-left: calc(${indentSpacing} + ${initialPadding}); text-indent: calc(-${indentSpacing} - 1px);`,
 					},
 				}),
 			);
